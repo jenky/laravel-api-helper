@@ -1,0 +1,40 @@
+{
+    "name": "jenky/laravel-api-helper",
+    "description": "Laravel API helper",
+    "keywords": [
+        "laravel",
+        "api",
+        "helper"
+    ],
+    "homepage": "https://github.com/jenky/laravel-api-helper",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Linh Tran",
+            "email": "jenky.w0w@gmail.com"
+        }
+    ],
+    "require": {
+        "php" : ">=5.4.0",
+        "illuminate/support": "~5.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit" : "4.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Jenky\\LaravelApiHelper\\": "src"
+        },
+        "files": [
+            "src/helpers.php"            
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Jenky\\LaravelNotification\\Test\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    }
+}
