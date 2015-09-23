@@ -50,7 +50,8 @@ class ApiServiceProvider extends ServiceProvider
     {
         $app->singleton('apihelper', function ($app) {
             $request = $app['request'];
-            return new ApiHelper($request);
+            $config = $app['config'];
+            return new Factory($request, $config);
         });
     }
 

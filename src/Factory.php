@@ -3,6 +3,7 @@
 namespace Jenky\LaravelApiHelper;
 
 use Illuminate\Http\Request;
+use Illuminate\Config\Repository as Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
@@ -11,13 +12,19 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 class Factory implements Contracts\Factory
 {
     /**
-     * @var Illuminate\Http\Request
+     * @var \Illuminate\Http\Request
      */
     protected $request;
 
-    public function __construct(Request $request)
+    /**
+     * @var \Illuminate\Contracts\Config
+     */
+    protected $config;
+
+    public function __construct(Request $request, Config $config)
     {
-        $this->request = $request;        
+        $this->request = $request;
+        $this->config = $config;   
     }
 
     /**
@@ -46,38 +53,68 @@ class Factory implements Contracts\Factory
      */
     protected function parseBuilder($builder)
     {
-        if ($builder instanceof EloquentBuilder)
+        /*if ($builder instanceof EloquentBuilder)
         {
-            return $this->createHandler(null, $builder->getQuery());
+            return $this->createEloquentBuilder($builder);
         }
 
         if (is_subclass_of($builder, Relation::class))
         {
-            return $this->createHandler($builder->getQuery(), $builder->getBaseQuery());
+            return $this->createEloquentBuilder($builder);
         }
 
         if (is_subclass_of($builder, Model::class))
         {
-            return $this->createHandler($builder->newQuery(), $builder->getQuery());
+            return $this->createEloquentBuilder($builder->newQuery());
         }
 
         if ($builder instanceof QueryBuilder)
         {
-            return $this->createHandler(null, $builder);
+            return $this->createQueryBuilder($builder);
+        }*/
+        if ($builder instanceof EloquentBuilder)
+        {
+            return $this->createHandler($builder->getQuery(), $builder);
+        }
+        if (is_subclass_of($builder, Relation::class))
+        {
+            return $this->createHandler($builder->getBaseQuery(), $builder->getQuery());
+        }
+        if (is_subclass_of($builder, Model::class))
+        {
+            return $this->createHandler($builder->getQuery(), $builder->newQuery());
+        }
+        if ($builder instanceof QueryBuilder)
+        {
+            return $this->createHandler($builder, $builder);
         }
     }
 
-    protected function createHandler($builder = null, $query = null)
+    protected function createHandler($query, $builder = null)
     {
-        $handler = new Handler($this->request);
+        $handler = new Handler($this->request, $this->config);
+
+        $handler->setQuery($query);
 
         if (!is_null($builder)) {
             $handler->setBuilder($builder);
-        }
+        }        
 
-        if (!is_null($query)) {
-            $handler->setQuery($query);
-        }
+        return $handler;
+    }
+
+    protected function createQueryBuilder($query)
+    {
+        $handler = new Builder\Query($this->request, $this->config);
+        $handler->setQuery($query);
+
+        return $handler;
+    }
+
+    protected function createEloquentBuilder($builder)
+    {
+        $handler = new Builder\Eloquent($this->request, $this->config);
+        $handler->setBuilder($builder);
 
         return $handler;
     }
