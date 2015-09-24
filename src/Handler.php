@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Illuminate\Config\Repository as Config;
-use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 
 class Handler
@@ -24,14 +23,39 @@ class Handler
     protected $config;
 
     /**
+     * List all params and its value from request.
+     * 
      * @var array
      */
     protected $params = [];
 
     /**
+     * Selected fields
+     * 
      * @var array
      */
     protected $fields = [];
+
+    /**
+     * Nested, relation sort params.
+     * 
+     * @var array
+     */
+    protected $additionalSorts = [];
+
+    /**
+     * Additional fields for filter.
+     * 
+     * @var array
+     */
+    protected $additionalFields = [];
+
+    /**
+     * Additional relation filters.
+     * 
+     * @var array
+     */
+    protected $additionalFilters = [];
 
     /**
      * Query Builder
@@ -47,10 +71,22 @@ class Handler
      */
     protected $builder;
 
+    /**
+     * The relations to eager load on every query.
+     *
+     * @var array
+     */
+    protected $with = [];
+
     public function __construct(Request $request, Config $config)
     {
         $this->request = $request;
         $this->config = $config;
+    }
+
+    protected function isEloquentBuilder()
+    {
+        return !is_null($this->builder) && $this->builder instanceof EloquentBuilder;
     }
 
     /**
@@ -89,8 +125,8 @@ class Handler
         $this->parseParam('sort');
         $this->parseParam('fields');
         $this->parseParam('limit');
-        if ($this->builder instanceof EloquentBuilder
-            || is_subclass_of($builder, Relation::class)) {
+        // $this->parseFilter();
+        if ($this->isEloquentBuilder()) {
             $this->parseParam('with');
         }
         $this->parseFilter();
@@ -126,13 +162,13 @@ class Handler
                 $direction = 'asc';
             }
             
-            $pair = [preg_replace('/^-/', '', $sort), $direction];
+            $sort = preg_replace('/^-/', '', $sort);
             
             // Only add the sorts that are on the base resource
             if (!Str::contains($sort, '.')) {
-                call_user_func_array([$this->getHandler(), 'orderBy'], $pair);
+                $this->getHandler()->orderBy($sort, $direction);
             } else {
-                // $this->additionalSorts[] = $pair;
+                $this->additionalSorts[$sort] = $direction;
             }
         }
     }
@@ -149,7 +185,7 @@ class Handler
             if (!Str::contains($field, '.')) {
                 $this->fields[] = trim($field);
             } else {
-                // $this->additionalFields[] = trim($field);
+                $this->additionalFields[] = trim($field);
             }
         }
     }
@@ -171,15 +207,83 @@ class Handler
      */
     protected function parseWith($param)
     {
-        $this->builder->with(explode(',', $param));
+        $with = explode(',', $param);
+
+        $relations = [];
+
+        foreach ($this->additionalSorts as $sort => $direction) {
+            $parts = explode('.', $sort);
+            $realKey = array_pop($parts);
+            $relation = implode('.', $parts);
+
+            if (in_array($relation, $with)) {
+                $this->builder->with([$relation => function ($query) use ($realKey, $direction) {                    
+                    $query->orderBy($realKey, $direction);
+                }]);
+
+                if(($key = array_search($relation, $with)) !== false) {
+                    unset($with[$key]);
+                }
+            }
+
+            $relations[$relation]['sorts'][] = [$realKey, $direction];
+        }
+
+        // foreach ($this->additionalFields as $field => $value) {
+        //     $parts = explode('.', $field);
+        //     $realKey = array_pop($parts);
+        //     $relation = implode('.', $parts);
+
+        //     $relations[$relation]['fields'][] = [$realKey, $value];
+        // }            
+
+        // foreach ($this->additionalFilters as $filter => $value) {
+        //     $filter = str_replace('~', '.', $filter);
+        //     $parts = explode('.', $filter);
+
+        //     $realKey = array_pop($parts);
+        //     $relation = implode('.', $parts);
+
+        //     $relations[$relation]['filters'][] = [$realKey, $value];
+        // }
+
+        // dd($relations);
+
+        // foreach ($relations as $key => $value) {
+        //     # code...
+        // }
+
+        if (!empty($with)) {
+            $this->builder->with($with);
+        }
+
+        $this->with = $this->builder->getEagerLoads();
     }
 
+    /**
+     * 
+     */
     protected function parseFilter()
     {
         if (!$params = $this->getParams()) {
             return;
         }
 
+        foreach ($params as $key => $value) {            
+            if ($this->isEloquentBuilder() && Str::contains($key, '~')) {
+                $this->filterRelation($key, $value);
+                // $this->additionalFilters[$key] = $value;
+            } else {
+                $this->filter($key, $value);
+            }
+        }
+    }
+
+    /**
+     * 
+     */
+    protected function formatParam($key, $value)
+    {
         $supportedFixes = [
             'lt' => '<',
             'gt' => '>',
@@ -195,41 +299,104 @@ class Handler
         $prefixes = implode('|', $supportedFixes);
         $suffixes = implode('|', array_keys($supportedFixes));
 
-        foreach ($params as $key => $value) {
-            $matches = [];
+        $matches = [];
 
-            // Matches every parameter with an optional prefix and/or postfix
-            // e.g. not-title-lk, title-lk, not-title, title
-            $regex = '/^(?:(' . $prefixes . ')-)?(.*?)(?:-(' . $suffixes . ')|$)/';
+        // Matches every parameter with an optional prefix and/or postfix
+        // e.g. not-title-lk, title-lk, not-title, title
+        $regex = '/^(?:(' . $prefixes . ')-)?(.*?)(?:-(' . $suffixes . ')|$)/';
 
-            preg_match($regex, $key, $matches);
+        preg_match($regex, $key, $matches);
 
-            if (!isset($matches[3])) {
-                if (strtolower(trim($value)) == 'null') {
-                    $comparator = 'NULL';
-                } else {
-                    $comparator = '=';
-                }
+        if (!isset($matches[3])) {
+            if (Str::lower(trim($value)) == 'null') {
+                $comparator = 'NULL';
             } else {
-                if (strtolower(trim($value)) == 'null') {
-                    $comparator = 'NOT NULL';
+                $comparator = '=';
+            }
+        } else {
+            if (Str::lower(trim($value)) == 'null') {
+                $comparator = 'NOT NULL';
+            } else {
+                $comparator = $supportedFixes[$matches[3]];
+            }
+        }
+
+        $column = $matches[2];
+
+        return compact('comparator', 'column', 'matches');
+    }
+
+    /**
+     * 
+     */
+    protected function filter($key, $value)
+    {
+        extract($this->formatParam($key, $value));
+
+        if ($comparator == 'IN') {
+            $values = explode(',', $value);
+            $this->getHandler()->whereIn($column, $values);
+        } else if ($comparator == 'NOT IN') {
+            $values = explode(',', $value);
+            $this->getHandler()->whereNotIn($column, $values);
+        } else {
+            $values = explode('|', $value);
+            if (count($values) > 1) {
+                $this->getHandler()->where(function ($query) use ($column, $comparator, $values) {
+                    foreach ($values as $value) {
+                        if ($comparator == 'LIKE' || $comparator == 'NOT LIKE') {
+                            $value = preg_replace('/(^\*|\*$)/', '%', $value);
+                        }
+                        // Link the filters with AND of there is a "not" and with OR if there's none
+                        if ($comparator == '!=' || $comparator == 'NOT LIKE') {
+                            $query->where($column, $comparator, $value);
+                        } else {
+                            $query->orWhere($column, $comparator, $value);
+                        }
+                    }
+                });
+            } else {
+                $value = $values[0];
+                if ($comparator == 'LIKE' || $comparator == 'NOT LIKE') {
+                    $value = preg_replace('/(^\*|\*$)/', '%', $value);
+                }
+                if ($comparator == 'NULL' || $comparator == 'NOT NULL') {
+                    $this->getHandler()->whereNull($column, 'and', $comparator == 'NOT NULL');
                 } else {
-                    $comparator = $supportedFixes[$matches[3]];
+                    $this->getHandler()->where($column, $comparator, $value);
                 }
             }
+        }
+    }
 
-            $column = $matches[2];
+    /**
+     * 
+     */
+    protected function filterRelation($key, $value)
+    {
+        $key = str_replace('~', '.', $key);
+        $parts = explode('.', $key);
 
+        $realKey = array_pop($parts);
+        $relation = implode('.', $parts);
+
+        if (!in_array($relation, array_keys($this->with))) {
+            return;
+        }
+
+        extract($this->formatParam($realKey, $value));
+
+        $this->builder->whereHas($relation, function ($q) use ($column, $comparator, $value) {
             if ($comparator == 'IN') {
                 $values = explode(',', $value);
-                $this->getHandler()->whereIn($column, $values);
+                $q->whereIn($column, $values);
             } else if ($comparator == 'NOT IN') {
                 $values = explode(',', $value);
-                $this->getHandler()->whereNotIn($column, $values);
+                $q->whereNotIn($column, $values);
             } else {
                 $values = explode('|', $value);
                 if (count($values) > 1) {
-                    $this->getHandler()->where(function ($query) use ($column, $comparator, $values) {
+                    $q->where(function ($query) use ($column, $comparator, $values) {
                         foreach ($values as $value) {
                             if ($comparator == 'LIKE' || $comparator == 'NOT LIKE') {
                                 $value = preg_replace('/(^\*|\*$)/', '%', $value);
@@ -248,13 +415,13 @@ class Handler
                         $value = preg_replace('/(^\*|\*$)/', '%', $value);
                     }
                     if ($comparator == 'NULL' || $comparator == 'NOT NULL') {
-                        $this->getHandler()->whereNull($column, 'and', $comparator == 'NOT NULL');
+                        $q->whereNull($column, 'and', $comparator == 'NOT NULL');
                     } else {
-                        $this->getHandler()->where($column, $comparator, $value);
+                        $q->where($column, $comparator, $value);
                     }
                 }
             }
-        }
+        });
     }
 
     /**
@@ -390,27 +557,5 @@ class Handler
         };
 
         throw new InvalidArgumentException("Missing query builder");
-    }
-
-    /**
-     * Check if there exists a method marked with the "@Relation"
-     * annotation on the given model.
-     *
-     * @param  Illuminate\Database\Eloquent\Model  $model
-     * @param  string                              $relationName
-     * @return boolean
-     */
-    protected function isRelation($model, $relationName)
-    {
-        if (!method_exists($model, $relationName)) {
-            return false;
-        }
-        $reflextionObject = new ReflectionObject($model);
-        $doc = $reflextionObject->getMethod($relationName)->getDocComment();
-        if ($doc && Str::contains($doc, '@Relation')) {
-            return true;
-        } else {
-            return false;
-        }
     }
 }

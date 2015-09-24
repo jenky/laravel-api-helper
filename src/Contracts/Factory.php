@@ -7,8 +7,8 @@ interface Factory
     /**
      * Set the notification drivers
      * 
-     * @param mixed $drivers
+     * @param mixed $builder
      * @return \Jenky\LaravelApiHelper\Factory
      */ 
-    public function make($builder, $id = null);
+    public function make($builder);
 }
