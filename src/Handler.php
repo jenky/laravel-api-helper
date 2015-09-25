@@ -51,13 +51,6 @@ class Handler
     protected $additionalFields = [];
 
     /**
-     * Additional relation filters.
-     * 
-     * @var array
-     */
-    protected $additionalFilters = [];
-
-    /**
      * Query Builder
      * 
      * @var \Illuminate\Database\Query\Builder
@@ -125,7 +118,6 @@ class Handler
         $this->parseParam('sort');
         $this->parseParam('fields');
         $this->parseParam('limit');
-        // $this->parseFilter();
         if ($this->isEloquentBuilder()) {
             $this->parseParam('with');
         }
@@ -191,7 +183,7 @@ class Handler
     }
 
     /**
-     * Parse limit fields parameter.
+     * Parse the limit parameter.
      *
      * @return void
      */
@@ -201,15 +193,13 @@ class Handler
     }
 
     /**
-     * Parse limit with parameter.
+     * Parse the with parameter.
      *
      * @return void
      */
     protected function parseWith($param)
     {
         $with = explode(',', $param);
-
-        $relations = [];
 
         foreach ($this->additionalSorts as $sort => $direction) {
             $parts = explode('.', $sort);
@@ -225,33 +215,7 @@ class Handler
                     unset($with[$key]);
                 }
             }
-
-            $relations[$relation]['sorts'][] = [$realKey, $direction];
         }
-
-        // foreach ($this->additionalFields as $field => $value) {
-        //     $parts = explode('.', $field);
-        //     $realKey = array_pop($parts);
-        //     $relation = implode('.', $parts);
-
-        //     $relations[$relation]['fields'][] = [$realKey, $value];
-        // }            
-
-        // foreach ($this->additionalFilters as $filter => $value) {
-        //     $filter = str_replace('~', '.', $filter);
-        //     $parts = explode('.', $filter);
-
-        //     $realKey = array_pop($parts);
-        //     $relation = implode('.', $parts);
-
-        //     $relations[$relation]['filters'][] = [$realKey, $value];
-        // }
-
-        // dd($relations);
-
-        // foreach ($relations as $key => $value) {
-        //     # code...
-        // }
 
         if (!empty($with)) {
             $this->builder->with($with);
@@ -261,7 +225,9 @@ class Handler
     }
 
     /**
+     * Parse all the paramenters for query builder.
      * 
+     * @return void
      */
     protected function parseFilter()
     {
@@ -272,7 +238,6 @@ class Handler
         foreach ($params as $key => $value) {            
             if ($this->isEloquentBuilder() && Str::contains($key, '~')) {
                 $this->filterRelation($key, $value);
-                // $this->additionalFilters[$key] = $value;
             } else {
                 $this->filter($key, $value);
             }
@@ -280,7 +245,12 @@ class Handler
     }
 
     /**
+     * Format the paramenter for query builder
      * 
+     * @param string $key
+     * @param string $value
+     * 
+     * @return array
      */
     protected function formatParam($key, $value)
     {
@@ -327,7 +297,12 @@ class Handler
     }
 
     /**
+     * Apply the filter to query builder
      * 
+     * @param string $key
+     * @param string $value
+     * 
+     * @return void
      */
     protected function filter($key, $value)
     {
@@ -370,7 +345,12 @@ class Handler
     }
 
     /**
+     * Apply the filter to relationship query builder
      * 
+     * @param string $key
+     * @param string $value
+     * 
+     * @return void
      */
     protected function filterRelation($key, $value)
     {
@@ -506,6 +486,7 @@ class Handler
             $this->config('prefix', '').'fields',
             $this->config('prefix', '').'limit',
             $this->config('prefix', '').'with',
+            $this->config('prefix', '').'page',
         ];
 
         return $this->params ? $this->params : $this->request->except($reserved);
@@ -526,26 +507,15 @@ class Handler
 
         $columns = !empty($this->fields) ? $this->fields : $columns;
 
-        $results = $this->getHandler()->get($columns);
+        if ($this->input('page')) {
+            $results = $this->getHandler()->paginate($this->input('limit', 20), $columns, $this->config('prefix', '').'page');
+        } else {
+            $results = $this->getHandler()->get($columns);
+        }
 
         return is_array($results) ? Collection::make($results) : $results;
     }
 
-    /**
-     * Dynamically call the query builder.
-     *
-     * @param  string  $method
-     * @param  array   $parameters
-     * @return mixed
-     */
-    /*public function __call($method, $parameters)
-    {
-        if ($this->builder) {
-            return call_user_func_array([$this->builder, $method], $parameters);
-        }
-
-        return call_user_func_array([$this->query, $method], $parameters);
-    }*/
     protected function getHandler()
     {
         if ($this->builder) {

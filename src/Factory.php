@@ -60,6 +60,14 @@ class Factory implements Contracts\Factory
         }
     }
 
+    /**
+     * Create the handler.
+     * 
+     * @param mixed $query
+     * @param mixed $builder
+     * 
+     * @return \Jenky\LaravelApiHelper\Handler
+     */
     protected function createHandler($query, $builder = null)
     {
         $handler = new Handler($this->request, $this->config);
@@ -69,22 +77,6 @@ class Factory implements Contracts\Factory
         if (!is_null($builder)) {
             $handler->setBuilder($builder);
         }        
-
-        return $handler;
-    }
-
-    protected function createQueryBuilder($query)
-    {
-        $handler = new Builder\Query($this->request, $this->config);
-        $handler->setQuery($query);
-
-        return $handler;
-    }
-
-    protected function createEloquentBuilder($builder)
-    {
-        $handler = new Builder\Eloquent($this->request, $this->config);
-        $handler->setBuilder($builder);
 
         return $handler;
     }
