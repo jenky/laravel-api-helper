@@ -2,11 +2,11 @@
 
 namespace Jenky\LaravelApiHelper;
 
-use Illuminate\Http\Request;
 use Illuminate\Config\Repository as Config;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Http\Request;
 
 class Factory implements Contracts\Factory
 {
@@ -23,14 +23,14 @@ class Factory implements Contracts\Factory
     public function __construct(Request $request, Config $config)
     {
         $this->request = $request;
-        $this->config = $config;   
+        $this->config = $config;
     }
 
     /**
      * Create the builder.
      * 
      * @param mixed $item
-     * @param int $id
+     * @param int   $id
      * 
      * @return \Jenky\LaravelApiHelper\Builder
      */
@@ -40,22 +40,19 @@ class Factory implements Contracts\Factory
     }
 
     /**
-     * Parse the builder
+     * Parse the builder.
      * 
      * @param mixed $builder
      */
     protected function parseBuilder($builder)
     {
-        if ($builder instanceof EloquentBuilder)
-        {
+        if ($builder instanceof EloquentBuilder) {
             return $this->createHandler($builder->getQuery(), $builder);
         }
-        if (is_subclass_of($builder, Model::class))
-        {
+        if (is_subclass_of($builder, Model::class)) {
             return $this->createHandler($builder->getQuery(), $builder->newQuery());
         }
-        if ($builder instanceof QueryBuilder)
-        {
+        if ($builder instanceof QueryBuilder) {
             return $this->createHandler($builder, $builder);
         }
     }
@@ -76,7 +73,7 @@ class Factory implements Contracts\Factory
 
         if (!is_null($builder)) {
             $handler->setBuilder($builder);
-        }        
+        }
 
         return $handler;
     }

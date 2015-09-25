@@ -1,10 +1,10 @@
 <?php
 
-if (! function_exists('apihelper')) {
+if (!function_exists('apihelper')) {
     /**
      * Get the api helper.
      *
-     * @param  mixed  $builder
+     * @param mixed $builder
      * 
      * @return \Jenky\LaravelApiHelper\Handler
      */
@@ -19,4 +19,3 @@ if (! function_exists('apihelper')) {
         return $factory->make($builder);
     }
 }
-

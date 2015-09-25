@@ -2,13 +2,12 @@
 
 namespace Jenky\LaravelApiHelper;
 
-use ArrayObject;
-use InvalidArgumentException;
+use Illuminate\Config\Repository as Config;
+use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Illuminate\Config\Repository as Config;
-use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
+use InvalidArgumentException;
 
 class Handler
 {
@@ -30,7 +29,7 @@ class Handler
     protected $params = [];
 
     /**
-     * Selected fields
+     * Selected fields.
      * 
      * @var array
      */
@@ -51,14 +50,14 @@ class Handler
     protected $additionalFields = [];
 
     /**
-     * Query Builder
+     * Query Builder.
      * 
      * @var \Illuminate\Database\Query\Builder
      */
     protected $query;
 
     /**
-     * Eloquent Builder
+     * Eloquent Builder.
      * 
      * @var \Illuminate\Database\Eloquent\Builder
      */
@@ -83,10 +82,10 @@ class Handler
     }
 
     /**
-     * Get the value from apihelper.php
+     * Get the value from apihelper.php.
      * 
      * @param string $config
-     * @param mixed $default
+     * @param mixed  $default
      * 
      * @return mixed
      */
@@ -98,7 +97,8 @@ class Handler
     /**
      * Get the param from request.
      * 
-     * @var string $param
+     * @var string
+     *
      * @param mixed $default
      * 
      * @return mixed
@@ -153,9 +153,9 @@ class Handler
             } else {
                 $direction = 'asc';
             }
-            
+
             $sort = preg_replace('/^-/', '', $sort);
-            
+
             // Only add the sorts that are on the base resource
             if (!Str::contains($sort, '.')) {
                 $this->getHandler()->orderBy($sort, $direction);
@@ -207,11 +207,11 @@ class Handler
             $relation = implode('.', $parts);
 
             if (in_array($relation, $with)) {
-                $this->builder->with([$relation => function ($query) use ($realKey, $direction) {                    
+                $this->builder->with([$relation => function ($query) use ($realKey, $direction) {
                     $query->orderBy($realKey, $direction);
                 }]);
 
-                if(($key = array_search($relation, $with)) !== false) {
+                if (($key = array_search($relation, $with)) !== false) {
                     unset($with[$key]);
                 }
             }
@@ -235,7 +235,7 @@ class Handler
             return;
         }
 
-        foreach ($params as $key => $value) {            
+        foreach ($params as $key => $value) {
             if ($this->isEloquentBuilder() && Str::contains($key, '~')) {
                 $this->filterRelation($key, $value);
             } else {
@@ -245,7 +245,7 @@ class Handler
     }
 
     /**
-     * Format the paramenter for query builder
+     * Format the paramenter for query builder.
      * 
      * @param string $key
      * @param string $value
@@ -255,15 +255,15 @@ class Handler
     protected function formatParam($key, $value)
     {
         $supportedFixes = [
-            'lt' => '<',
-            'gt' => '>',
-            'lte' => '<=',
-            'gte' => '>=',
-            'lk' => 'LIKE',
+            'lt'     => '<',
+            'gt'     => '>',
+            'lte'    => '<=',
+            'gte'    => '>=',
+            'lk'     => 'LIKE',
             'not-lk' => 'NOT LIKE',
-            'in' => 'IN',
+            'in'     => 'IN',
             'not-in' => 'NOT IN',
-            'not' => '!=',
+            'not'    => '!=',
         ];
 
         $prefixes = implode('|', $supportedFixes);
@@ -273,7 +273,7 @@ class Handler
 
         // Matches every parameter with an optional prefix and/or postfix
         // e.g. not-title-lk, title-lk, not-title, title
-        $regex = '/^(?:(' . $prefixes . ')-)?(.*?)(?:-(' . $suffixes . ')|$)/';
+        $regex = '/^(?:('.$prefixes.')-)?(.*?)(?:-('.$suffixes.')|$)/';
 
         preg_match($regex, $key, $matches);
 
@@ -297,7 +297,7 @@ class Handler
     }
 
     /**
-     * Apply the filter to query builder
+     * Apply the filter to query builder.
      * 
      * @param string $key
      * @param string $value
@@ -311,7 +311,7 @@ class Handler
         if ($comparator == 'IN') {
             $values = explode(',', $value);
             $this->getHandler()->whereIn($column, $values);
-        } else if ($comparator == 'NOT IN') {
+        } elseif ($comparator == 'NOT IN') {
             $values = explode(',', $value);
             $this->getHandler()->whereNotIn($column, $values);
         } else {
@@ -345,7 +345,7 @@ class Handler
     }
 
     /**
-     * Apply the filter to relationship query builder
+     * Apply the filter to relationship query builder.
      * 
      * @param string $key
      * @param string $value
@@ -370,7 +370,7 @@ class Handler
             if ($comparator == 'IN') {
                 $values = explode(',', $value);
                 $q->whereIn($column, $values);
-            } else if ($comparator == 'NOT IN') {
+            } elseif ($comparator == 'NOT IN') {
                 $values = explode(',', $value);
                 $q->whereNotIn($column, $values);
             } else {
@@ -417,7 +417,7 @@ class Handler
     }
 
     /**
-     * Get the query builder
+     * Get the query builder.
      * 
      * @return \Illuminate\Database\Query\Builder
      */
@@ -427,7 +427,7 @@ class Handler
     }
 
     /**
-     * Set the Eloquent builder
+     * Set the Eloquent builder.
      * 
      * @param $builder
      * 
@@ -435,11 +435,11 @@ class Handler
      */
     public function setBuilder($builder)
     {
-        $this->builder = $builder;        
+        $this->builder = $builder;
     }
 
     /**
-     * Get the Eloquent builder
+     * Get the Eloquent builder.
      * 
      * @return \Illuminate\Database\Eloquent\Builder
      */
@@ -451,7 +451,8 @@ class Handler
     /**
      * Get a subset of the items from the input data.
      *
-     * @param  array  $keys
+     * @param array $keys
+     *
      * @return \Jenky\LaravelApiHelper\Handler
      */
     public function only($key)
@@ -464,7 +465,8 @@ class Handler
     /**
      * Get all of the input except for a specified array of items.
      *
-     * @param  array  $keys
+     * @param array $keys
+     *
      * @return \Jenky\LaravelApiHelper\Handler
      */
     public function except($keys)
@@ -526,6 +528,6 @@ class Handler
             return $this->query;
         };
 
-        throw new InvalidArgumentException("Missing query builder");
+        throw new InvalidArgumentException('Missing query builder');
     }
 }
