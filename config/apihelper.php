@@ -11,6 +11,6 @@ return [
     | fields, sort or with...
     | 
     */
-    
-	'prefix' => '_',
+
+    'prefix' => '_',
 ];

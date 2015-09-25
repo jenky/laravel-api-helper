@@ -4,7 +4,7 @@ namespace Jenky\LaravelApiHelper\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
-class Api extends Facade 
+class Api extends Facade
 {
     /**
      * Get the registered name of the component.
@@ -12,7 +12,7 @@ class Api extends Facade
      * @return string
      */
     protected static function getFacadeAccessor()
-    { 
-        return 'apihelper'; 
+    {
+        return 'apihelper';
     }
 }

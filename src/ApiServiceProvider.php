@@ -2,8 +2,8 @@
 
 namespace Jenky\LaravelApiHelper;
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\ServiceProvider;
 
 class ApiServiceProvider extends ServiceProvider
 {
@@ -34,7 +34,7 @@ class ApiServiceProvider extends ServiceProvider
      */
     protected function setupConfig()
     {
-        $configPath = __DIR__ . '/../config/apihelper.php';
+        $configPath = __DIR__.'/../config/apihelper.php';
         $this->publishes([$configPath => config_path('apihelper.php')], 'config');
         $this->mergeConfigFrom($configPath, 'apihelper');
     }
@@ -42,7 +42,7 @@ class ApiServiceProvider extends ServiceProvider
     /**
      * Register the helper class.
      *
-     * @param \Illuminate\Contracts\Foundation\Application  $app
+     * @param \Illuminate\Contracts\Foundation\Application $app
      *
      * @return void
      */
@@ -51,6 +51,7 @@ class ApiServiceProvider extends ServiceProvider
         $app->singleton('apihelper', function ($app) {
             $request = $app['request'];
             $config = $app['config'];
+
             return new Factory($request, $config);
         });
     }
