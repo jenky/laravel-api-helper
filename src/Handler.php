@@ -2,7 +2,7 @@
 
 namespace Jenky\LaravelApiHelper;
 
-use Illuminate\Config\Repository as Config;
+use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -17,7 +17,7 @@ class Handler
     protected $request;
 
     /**
-     * @var \Illuminate\Contracts\Config
+     * @var \Illuminate\Contracts\Config\Repository
      */
     protected $config;
 
@@ -70,6 +70,12 @@ class Handler
      */
     protected $with = [];
 
+    /**
+     * Create new instance.
+     * 
+     * @param \Illuminate\Http\Request $request
+     * @param \Illuminate\Contracts\Config\Repository $config
+     */
     public function __construct(Request $request, Config $config)
     {
         $this->request = $request;
@@ -545,6 +551,11 @@ class Handler
         return is_array($results) ? Collection::make($results) : $results;
     }
 
+    /**
+     * Get the handler.
+     * 
+     * @return \Illuminate\Database\Query\Builder | \Illuminate\Database\Eloquent\Builder
+     */
     protected function getHandler()
     {
         if ($this->builder) {

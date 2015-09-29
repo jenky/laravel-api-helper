@@ -2,7 +2,7 @@
 
 namespace Jenky\LaravelApiHelper;
 
-use Illuminate\Config\Repository as Config;
+use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Database\Eloquent\Builder as EloquentBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder as QueryBuilder;
