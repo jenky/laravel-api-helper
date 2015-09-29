@@ -494,6 +494,27 @@ class Handler
         return $this->params ? $this->params : $this->request->except($reserved);
     }
 
+    /**
+     * @param int $id
+     * @param array $column
+     * 
+     * @return mixed
+     */
+    public function find($id, $columns = ['*'])
+    {
+        $this->parse();
+
+        $columns = !empty($this->fields) ? $this->fields : $columns;
+
+        return $this->getHandler()->find($id);
+    }
+
+    /**
+     * @param int $id
+     * @param array $column
+     * 
+     * @return mixed
+     */
     public function item($columns = ['*'])
     {
         $this->parse();
@@ -503,6 +524,12 @@ class Handler
         return $this->getHandler()->first($columns);
     }
 
+    /**
+     * @param int $id
+     * @param array $column
+     * 
+     * @return mixed
+     */
     public function collection($columns = ['*'])
     {
         $this->parse();
