@@ -73,7 +73,7 @@ class Handler
     /**
      * Create new instance.
      * 
-     * @param \Illuminate\Http\Request $request
+     * @param \Illuminate\Http\Request                $request
      * @param \Illuminate\Contracts\Config\Repository $config
      */
     public function __construct(Request $request, Config $config)
@@ -501,7 +501,7 @@ class Handler
     }
 
     /**
-     * @param int $id
+     * @param int   $id
      * @param array $column
      * 
      * @return mixed
@@ -516,7 +516,7 @@ class Handler
     }
 
     /**
-     * @param int $id
+     * @param int   $id
      * @param array $column
      * 
      * @return mixed
@@ -531,7 +531,7 @@ class Handler
     }
 
     /**
-     * @param int $id
+     * @param int   $id
      * @param array $column
      * 
      * @return mixed
