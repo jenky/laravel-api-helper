@@ -554,10 +554,10 @@ class Handler
     /**
      * Paginate the given query.
      *
-     * @param  int  $perPage
-     * @param  array  $columns
-     * @param  string  $pageName
-     * @param  int|null  $page
+     * @param int      $perPage
+     * @param array    $columns
+     * @param string   $pageName
+     * @param int|null $page
      * 
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
@@ -573,9 +573,9 @@ class Handler
     /**
      * Get the handler.
      * 
-     * @return \Illuminate\Database\Query\Builder | \Illuminate\Database\Eloquent\Builder
-     * 
      * @throws \InvalidArgumentException
+     *
+     * @return \Illuminate\Database\Query\Builder | \Illuminate\Database\Eloquent\Builder
      */
     protected function getHandler()
     {
