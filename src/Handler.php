@@ -552,9 +552,30 @@ class Handler
     }
 
     /**
+     * Paginate the given query.
+     *
+     * @param  int  $perPage
+     * @param  array  $columns
+     * @param  string  $pageName
+     * @param  int|null  $page
+     * 
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
+     */
+    public function paginate($perPage = null, $columns = ['*'], $pageName = 'page', $page = null)
+    {
+        $this->parse();
+
+        $columns = !empty($this->fields) ? $this->fields : $columns;
+
+        return $this->getHandler()->paginate($perPage, $columns, $this->config('prefix', '').'page');
+    }
+
+    /**
      * Get the handler.
      * 
      * @return \Illuminate\Database\Query\Builder | \Illuminate\Database\Eloquent\Builder
+     * 
+     * @throws \InvalidArgumentException
      */
     protected function getHandler()
     {
