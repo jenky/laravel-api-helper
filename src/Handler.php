@@ -497,6 +497,8 @@ class Handler
             $this->config('prefix', '').'page',
         ];
 
+        $reserved = array_merge($reserved, $this->config('ignores', []));
+
         return $this->params ? $this->params : $this->request->except($reserved);
     }
 
