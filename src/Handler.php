@@ -90,9 +90,8 @@ class Handler
     /**
      * Get the value from apihelper.php.
      * 
-     * @param string $config
-     * @param mixed  $default
-     * 
+     * @param  string $config
+     * @param  mixed  $default
      * @return mixed
      */
     protected function config($config, $default = null)
@@ -103,10 +102,8 @@ class Handler
     /**
      * Get the param from request.
      * 
-     * @var string
-     *
-     * @param mixed $default
-     * 
+     * @param  string
+     * @param  mixed $default
      * @return mixed
      */
     protected function input($param, $default = null)
@@ -130,6 +127,12 @@ class Handler
         $this->parseFilter();
     }
 
+    /**
+     * Parse the special param.
+     * 
+     * @param  string $param
+     * @return
+     */
     protected function parseParam($param)
     {
         $method = 'parse'.ucfirst($param);
@@ -253,9 +256,8 @@ class Handler
     /**
      * Format the paramenter for query builder.
      * 
-     * @param string $key
-     * @param string $value
-     * 
+     * @param  string $key
+     * @param  string $value
      * @return array
      */
     protected function formatParam($key, $value)
@@ -305,9 +307,8 @@ class Handler
     /**
      * Apply the filter to query builder.
      * 
-     * @param string $key
-     * @param string $value
-     * 
+     * @param  string $key
+     * @param  string $value
      * @return void
      */
     protected function filter($key, $value)
@@ -353,9 +354,8 @@ class Handler
     /**
      * Apply the filter to relationship query builder.
      * 
-     * @param string $key
-     * @param string $value
-     * 
+     * @param  string $key
+     * @param  string $value
      * @return void
      */
     protected function filterRelation($key, $value)
@@ -413,8 +413,7 @@ class Handler
     /**
      * Set the query builder.
      * 
-     * @param $query
-     * 
+     * @param  $query
      * @return void
      */
     public function setQuery($query)
@@ -435,8 +434,7 @@ class Handler
     /**
      * Set the Eloquent builder.
      * 
-     * @param $builder
-     * 
+     * @param  $builder
      * @return void
      */
     public function setBuilder($builder)
@@ -457,8 +455,7 @@ class Handler
     /**
      * Get a subset of the items from the input data.
      *
-     * @param array $keys
-     *
+     * @param  array $keys
      * @return \Jenky\LaravelApiHelper\Handler
      */
     public function only($key)
@@ -471,8 +468,7 @@ class Handler
     /**
      * Get all of the input except for a specified array of items.
      *
-     * @param array $keys
-     *
+     * @param  array $keys
      * @return \Jenky\LaravelApiHelper\Handler
      */
     public function except($keys)
@@ -503,46 +499,62 @@ class Handler
     }
 
     /**
-     * @param int   $id
-     * @param array $column
+     * Get columns name.
      * 
+     * @param  array $columns
+     * @return array
+     */
+    protected function getColumns(array $columns)
+    {
+        !empty($this->fields) ? $this->fields : $columns;
+    }
+
+    /**
+     * @param  int $id
+     * @param  array $column
      * @return mixed
      */
     public function find($id, $columns = ['*'])
     {
         $this->parse();
 
-        $columns = !empty($this->fields) ? $this->fields : $columns;
-
-        return $this->getHandler()->find($id);
+        return $this->getHandler()->find($id, $this->getColumns($columns));
     }
 
     /**
-     * @param int   $id
-     * @param array $column
-     * 
+     * @param  int $id
+     * @param  array $column
+     * @return mixed
+     */
+    public function findOrFail($id, $columns = ['*'])
+    {
+        $this->parse();
+
+        return $this->getHandler()->findOrFail($id, $this->getColumns($columns));
+    }
+
+    /**
+     * @param  int $id
+     * @param  array $column
      * @return mixed
      */
     public function item($columns = ['*'])
     {
         $this->parse();
 
-        $columns = !empty($this->fields) ? $this->fields : $columns;
-
-        return $this->getHandler()->first($columns);
+        return $this->getHandler()->first($this->getColumns($columns));
     }
 
     /**
-     * @param int   $id
+     * @param int $id
      * @param array $column
-     * 
      * @return mixed
      */
     public function collection($columns = ['*'])
     {
         $this->parse();
 
-        $columns = !empty($this->fields) ? $this->fields : $columns;
+        $columns = $this->getColumns($columns);
 
         if ($this->input('page')) {
             $results = $this->getHandler()->paginate($this->input('limit', 20), $columns, $this->config('prefix', '').'page');
@@ -556,27 +568,23 @@ class Handler
     /**
      * Paginate the given query.
      *
-     * @param int      $perPage
-     * @param array    $columns
-     * @param string   $pageName
-     * @param int|null $page
-     * 
+     * @param  int      $perPage
+     * @param  array    $columns
+     * @param  string   $pageName
+     * @param  int|null $page
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
     public function paginate($perPage = null, $columns = ['*'], $pageName = 'page', $page = null)
     {
         $this->parse();
 
-        $columns = !empty($this->fields) ? $this->fields : $columns;
-
-        return $this->getHandler()->paginate($perPage, $columns, $this->config('prefix', '').'page');
+        return $this->getHandler()->paginate($perPage, $this->getColumns($columns), $this->config('prefix', '').'page');
     }
 
     /**
      * Get the handler.
      * 
      * @throws \InvalidArgumentException
-     *
      * @return \Illuminate\Database\Query\Builder | \Illuminate\Database\Eloquent\Builder
      */
     protected function getHandler()
