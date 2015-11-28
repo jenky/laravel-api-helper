@@ -90,8 +90,9 @@ class Handler
     /**
      * Get the value from apihelper.php.
      * 
-     * @param  string $config
-     * @param  mixed  $default
+     * @param string $config
+     * @param mixed  $default
+     *
      * @return mixed
      */
     protected function config($config, $default = null)
@@ -103,7 +104,8 @@ class Handler
      * Get the param from request.
      * 
      * @param  string
-     * @param  mixed $default
+     * @param mixed $default
+     *
      * @return mixed
      */
     protected function input($param, $default = null)
@@ -130,7 +132,8 @@ class Handler
     /**
      * Parse the special param.
      * 
-     * @param  string $param
+     * @param string $param
+     *
      * @return
      */
     protected function parseParam($param)
@@ -256,8 +259,9 @@ class Handler
     /**
      * Format the paramenter for query builder.
      * 
-     * @param  string $key
-     * @param  string $value
+     * @param string $key
+     * @param string $value
+     *
      * @return array
      */
     protected function formatParam($key, $value)
@@ -307,8 +311,9 @@ class Handler
     /**
      * Apply the filter to query builder.
      * 
-     * @param  string $key
-     * @param  string $value
+     * @param string $key
+     * @param string $value
+     *
      * @return void
      */
     protected function filter($key, $value)
@@ -354,8 +359,9 @@ class Handler
     /**
      * Apply the filter to relationship query builder.
      * 
-     * @param  string $key
-     * @param  string $value
+     * @param string $key
+     * @param string $value
+     *
      * @return void
      */
     protected function filterRelation($key, $value)
@@ -414,6 +420,7 @@ class Handler
      * Set the query builder.
      * 
      * @param  $query
+     *
      * @return void
      */
     public function setQuery($query)
@@ -435,6 +442,7 @@ class Handler
      * Set the Eloquent builder.
      * 
      * @param  $builder
+     *
      * @return void
      */
     public function setBuilder($builder)
@@ -455,7 +463,8 @@ class Handler
     /**
      * Get a subset of the items from the input data.
      *
-     * @param  array $keys
+     * @param array $keys
+     *
      * @return \Jenky\LaravelApiHelper\Handler
      */
     public function only($key)
@@ -468,7 +477,8 @@ class Handler
     /**
      * Get all of the input except for a specified array of items.
      *
-     * @param  array $keys
+     * @param array $keys
+     *
      * @return \Jenky\LaravelApiHelper\Handler
      */
     public function except($keys)
@@ -501,7 +511,8 @@ class Handler
     /**
      * Get columns name.
      * 
-     * @param  array $columns
+     * @param array $columns
+     *
      * @return array
      */
     protected function getColumns(array $columns)
@@ -510,8 +521,9 @@ class Handler
     }
 
     /**
-     * @param  int $id
-     * @param  array $column
+     * @param int   $id
+     * @param array $column
+     *
      * @return mixed
      */
     public function find($id, $columns = ['*'])
@@ -522,8 +534,9 @@ class Handler
     }
 
     /**
-     * @param  int $id
-     * @param  array $column
+     * @param int   $id
+     * @param array $column
+     *
      * @return mixed
      */
     public function findOrFail($id, $columns = ['*'])
@@ -534,8 +547,9 @@ class Handler
     }
 
     /**
-     * @param  int $id
-     * @param  array $column
+     * @param int   $id
+     * @param array $column
+     *
      * @return mixed
      */
     public function item($columns = ['*'])
@@ -546,8 +560,9 @@ class Handler
     }
 
     /**
-     * @param int $id
+     * @param int   $id
      * @param array $column
+     *
      * @return mixed
      */
     public function collection($columns = ['*'])
@@ -568,10 +583,11 @@ class Handler
     /**
      * Paginate the given query.
      *
-     * @param  int      $perPage
-     * @param  array    $columns
-     * @param  string   $pageName
-     * @param  int|null $page
+     * @param int      $perPage
+     * @param array    $columns
+     * @param string   $pageName
+     * @param int|null $page
+     *
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
     public function paginate($perPage = null, $columns = ['*'], $pageName = 'page', $page = null)
@@ -585,6 +601,7 @@ class Handler
      * Get the handler.
      * 
      * @throws \InvalidArgumentException
+     *
      * @return \Illuminate\Database\Query\Builder | \Illuminate\Database\Eloquent\Builder
      */
     protected function getHandler()
