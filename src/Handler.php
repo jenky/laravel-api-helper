@@ -523,8 +523,9 @@ class Handler
     /**
      * Find a model by its primary key.
      * 
-     * @param  int   $id
-     * @param  array $column
+     * @param int   $id
+     * @param array $column
+     *
      * @return mixed
      */
     public function find($id, $columns = ['*'])
@@ -537,11 +538,12 @@ class Handler
     /**
      * Find a model by its primary key or throw an exception.
      * 
-     * @param  int   $id
-     * @param  array $column
-     * @return mixed
+     * @param int   $id
+     * @param array $column
      *
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     *
+     * @return mixed
      */
     public function findOrFail($id, $columns = ['*'])
     {
@@ -553,7 +555,8 @@ class Handler
     /**
      * Execute the query and get the first result.
      *
-     * @param  array  $columns
+     * @param array $columns
+     *
      * @return mixed
      */
     public function first($columns = ['*'])
@@ -566,10 +569,11 @@ class Handler
     /**
      * Execute the query and get the first result or throw an exception.
      *
-     * @param  array  $columns
-     * @return mixed
+     * @param array $columns
      *
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
+     *
+     * @return mixed
      */
     public function firstOrFail($columns = ['*'])
     {
