@@ -608,7 +608,9 @@ class Handler
         $columns = $this->getColumns($columns);
 
         if ($this->input('page')) {
-            $results = $this->getHandler()->paginate($this->input('limit', 20), $columns, $this->config('prefix', '').'page');
+            $perPage = intval($this->input('limit', 20));
+            $results = $this->getHandler()->paginate($perPage, $columns, $this->config('prefix', '').'page');
+            $results->appends($this->config('prefix', '').'limit', $perPage);
         } else {
             $results = $this->getHandler()->get($columns);
         }
@@ -630,7 +632,7 @@ class Handler
     {
         $this->parse();
 
-        return $this->getHandler()->paginate($perPage, $this->getColumns($columns), $this->config('prefix', '').'page');
+        return $this->getHandler()->paginate($perPage, $this->getColumns($columns), $this->config('prefix', '').$pageName, $page);
     }
 
     /**
