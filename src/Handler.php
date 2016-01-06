@@ -608,7 +608,8 @@ class Handler
         $columns = $this->getColumns($columns);
 
         if ($this->input('page')) {
-            $perPage = intval($this->input('limit', 20));
+            $limit = $this->config('limit', 20);
+            $perPage = intval($this->input('limit', $limit));
             $results = $this->getHandler()->paginate($perPage, $columns, $this->config('prefix', '').'page');
             $results->appends($this->config('prefix', '').'limit', $perPage);
         } else {
