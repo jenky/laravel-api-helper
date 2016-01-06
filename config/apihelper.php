@@ -22,7 +22,7 @@ return [
     | Default limit value for query.
     | 
     */
-   
+
     'limit' => 20,
 
     /*
