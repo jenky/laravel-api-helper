@@ -5,7 +5,7 @@ if (!function_exists('apihelper')) {
      * Get the api helper.
      *
      * @param mixed $builder
-     * 
+     *
      * @return \Jenky\LaravelApiHelper\Handler
      */
     function apihelper($builder = null)
