@@ -23,42 +23,42 @@ class Handler
 
     /**
      * List all params and its value from request.
-     * 
+     *
      * @var array
      */
     protected $params = [];
 
     /**
      * Selected fields.
-     * 
+     *
      * @var array
      */
     protected $fields = [];
 
     /**
      * Nested, relation sort params.
-     * 
+     *
      * @var array
      */
     protected $additionalSorts = [];
 
     /**
      * Additional fields for filter.
-     * 
+     *
      * @var array
      */
     protected $additionalFields = [];
 
     /**
      * Query Builder.
-     * 
+     *
      * @var \Illuminate\Database\Query\Builder
      */
     protected $query;
 
     /**
      * Eloquent Builder.
-     * 
+     *
      * @var \Illuminate\Database\Eloquent\Builder
      */
     protected $builder;
@@ -72,7 +72,7 @@ class Handler
 
     /**
      * Create new instance.
-     * 
+     *
      * @param \Illuminate\Http\Request                $request
      * @param \Illuminate\Contracts\Config\Repository $config
      */
@@ -89,7 +89,7 @@ class Handler
 
     /**
      * Get the value from apihelper.php.
-     * 
+     *
      * @param string $config
      * @param mixed  $default
      *
@@ -102,7 +102,7 @@ class Handler
 
     /**
      * Get the param from request.
-     * 
+     *
      * @param  string
      * @param mixed $default
      *
@@ -115,7 +115,7 @@ class Handler
 
     /**
      * Parse the data from the request.
-     * 
+     *
      * @return void
      */
     protected function parse()
@@ -131,7 +131,7 @@ class Handler
 
     /**
      * Parse the special param.
-     * 
+     *
      * @param string $param
      *
      * @return
@@ -238,7 +238,7 @@ class Handler
 
     /**
      * Parse all the paramenters for query builder.
-     * 
+     *
      * @return void
      */
     protected function parseFilter()
@@ -258,7 +258,7 @@ class Handler
 
     /**
      * Format the paramenter for query builder.
-     * 
+     *
      * @param string $key
      * @param string $value
      *
@@ -310,7 +310,7 @@ class Handler
 
     /**
      * Apply the filter to query builder.
-     * 
+     *
      * @param string $key
      * @param string $value
      *
@@ -358,7 +358,7 @@ class Handler
 
     /**
      * Apply the filter to relationship query builder.
-     * 
+     *
      * @param string $key
      * @param string $value
      *
@@ -418,7 +418,7 @@ class Handler
 
     /**
      * Set the query builder.
-     * 
+     *
      * @param  $query
      *
      * @return void
@@ -430,7 +430,7 @@ class Handler
 
     /**
      * Get the query builder.
-     * 
+     *
      * @return \Illuminate\Database\Query\Builder
      */
     public function getQuery()
@@ -440,7 +440,7 @@ class Handler
 
     /**
      * Set the Eloquent builder.
-     * 
+     *
      * @param  $builder
      *
      * @return void
@@ -452,7 +452,7 @@ class Handler
 
     /**
      * Get the Eloquent builder.
-     * 
+     *
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function getBuilder()
@@ -490,7 +490,7 @@ class Handler
 
     /**
      * Get the params from the request.
-     * 
+     *
      * @return array
      */
     protected function getParams()
@@ -510,7 +510,7 @@ class Handler
 
     /**
      * Get columns name.
-     * 
+     *
      * @param array $columns
      *
      * @return array
@@ -522,7 +522,7 @@ class Handler
 
     /**
      * Find a model by its primary key.
-     * 
+     *
      * @param int   $id
      * @param array $column
      *
@@ -537,7 +537,7 @@ class Handler
 
     /**
      * Find a model by its primary key or throw an exception.
-     * 
+     *
      * @param int   $id
      * @param array $column
      *
@@ -607,7 +607,7 @@ class Handler
 
         $columns = $this->getColumns($columns);
 
-        if ($this->input('page')) {
+        if ($this->input('page') || $this->input('limit')) {
             $limit = $this->config('limit', 20);
             $perPage = intval($this->input('limit', $limit));
             $results = $this->getHandler()->paginate($perPage, $columns, $this->config('prefix', '').'page');
@@ -638,7 +638,7 @@ class Handler
 
     /**
      * Get the handler.
-     * 
+     *
      * @throws \InvalidArgumentException
      *
      * @return \Illuminate\Database\Query\Builder | \Illuminate\Database\Eloquent\Builder
