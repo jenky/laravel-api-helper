@@ -28,10 +28,10 @@ class Factory implements Contracts\Factory
 
     /**
      * Create the builder.
-     * 
+     *
      * @param mixed $item
      * @param int   $id
-     * 
+     *
      * @return \Jenky\LaravelApiHelper\Builder
      */
     public function make($builder)
@@ -41,7 +41,7 @@ class Factory implements Contracts\Factory
 
     /**
      * Parse the builder.
-     * 
+     *
      * @param mixed $builder
      */
     protected function parseBuilder($builder)
@@ -59,10 +59,10 @@ class Factory implements Contracts\Factory
 
     /**
      * Create the handler.
-     * 
+     *
      * @param mixed $query
      * @param mixed $builder
-     * 
+     *
      * @return \Jenky\LaravelApiHelper\Handler
      */
     protected function createHandler($query, $builder = null)

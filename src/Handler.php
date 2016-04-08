@@ -651,7 +651,7 @@ class Handler
 
         if ($this->query) {
             return $this->query;
-        };
+        }
 
         throw new InvalidArgumentException('Missing query builder');
     }

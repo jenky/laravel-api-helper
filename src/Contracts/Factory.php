@@ -6,7 +6,7 @@ interface Factory
 {
     /**
      * Set the notification drivers.
-     * 
+     *
      * @param mixed $builder
      *
      * @return \Jenky\LaravelApiHelper\Factory
