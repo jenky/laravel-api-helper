@@ -1,6 +1,6 @@
 <?php
 
-if (!function_exists('apihelper')) {
+if (! function_exists('apihelper')) {
     /**
      * Get the api helper.
      *

@@ -71,7 +71,7 @@ class Factory implements Contracts\Factory
 
         $handler->setQuery($query);
 
-        if (!is_null($builder)) {
+        if (! is_null($builder)) {
             $handler->setBuilder($builder);
         }
 
