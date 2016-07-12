@@ -64,17 +64,25 @@ class Handler
     protected $builder;
 
     /**
-     * The relations to eager load on every query.
+     * The relations to eager load.
      *
      * @var array
      */
     protected $with = [];
 
     /**
+     * The relations is allowed to eager load.
+     *
+     * @var array
+     */
+    protected $withable = ['*'];
+
+    /**
      * Create new instance.
      *
-     * @param \Illuminate\Http\Request                $request
-     * @param \Illuminate\Contracts\Config\Repository $config
+     * @param  \Illuminate\Http\Request $request
+     * @param  \Illuminate\Contracts\Config\Repository $config
+     * @return void
      */
     public function __construct(Request $request, Config $config)
     {
@@ -82,17 +90,21 @@ class Handler
         $this->config = $config;
     }
 
+    /**
+     * Check if builder is eloquent.
+     *
+     * @return bool
+     */
     protected function isEloquentBuilder()
     {
-        return !is_null($this->builder) && $this->builder instanceof EloquentBuilder;
+        return ! is_null($this->builder) && $this->builder instanceof EloquentBuilder;
     }
 
     /**
      * Get the value from apihelper.php.
      *
-     * @param string $config
-     * @param mixed  $default
-     *
+     * @param  string $config
+     * @param  mixed $default
      * @return mixed
      */
     protected function config($config, $default = null)
@@ -103,9 +115,8 @@ class Handler
     /**
      * Get the param from request.
      *
-     * @param  string
-     * @param mixed $default
-     *
+     * @param  string $param
+     * @param  mixed $default
      * @return mixed
      */
     protected function input($param, $default = null)
@@ -132,9 +143,8 @@ class Handler
     /**
      * Parse the special param.
      *
-     * @param string $param
-     *
-     * @return
+     * @param  string $param
+     * @return void
      */
     protected function parseParam($param)
     {
@@ -143,17 +153,16 @@ class Handler
         if (method_exists($this, $method)) {
             if ($params = $this->input($param)) {
                 return $this->$method($params);
-            } else {
-                return;
             }
         }
 
-        throw new InvalidArgumentException("Param [$param] not supported.");
+        // throw new InvalidArgumentException("Param [$param] not supported.");
     }
 
     /**
      * Parse the sort parameter.
      *
+     * @param  string $params
      * @return void
      */
     protected function parseSort($params)
@@ -169,7 +178,7 @@ class Handler
             $sort = preg_replace('/^-/', '', $sort);
 
             // Only add the sorts that are on the base resource
-            if (!Str::contains($sort, '.')) {
+            if (! Str::contains($sort, '.')) {
                 $this->getHandler()->orderBy($sort, $direction);
             } else {
                 $this->additionalSorts[$sort] = $direction;
@@ -180,13 +189,14 @@ class Handler
     /**
      * Parse the fields parameter.
      *
+     * @param  string $params
      * @return void
      */
     protected function parseFields($params)
     {
         foreach (explode(',', $params) as $field) {
             //Only add the fields that are on the base resource
-            if (!Str::contains($field, '.')) {
+            if (! Str::contains($field, '.')) {
                 $this->fields[] = trim($field);
             } else {
                 $this->additionalFields[] = trim($field);
@@ -197,6 +207,7 @@ class Handler
     /**
      * Parse the limit parameter.
      *
+     * @param  int $param
      * @return void
      */
     protected function parseLimit($param)
@@ -207,11 +218,13 @@ class Handler
     /**
      * Parse the with parameter.
      *
+     * @param  string $params
      * @return void
      */
-    protected function parseWith($param)
+    protected function parseWith($params)
     {
-        $with = explode(',', $param);
+        $with = explode(',', $params);
+        $with = in_array('*', $this->withable) ? $with : array_only($with, $this->withable);
 
         foreach ($this->additionalSorts as $sort => $direction) {
             $parts = explode('.', $sort);
@@ -229,7 +242,7 @@ class Handler
             }
         }
 
-        if (!empty($with)) {
+        if (! empty($with)) {
             $this->builder->with($with);
         }
 
@@ -243,7 +256,7 @@ class Handler
      */
     protected function parseFilter()
     {
-        if (!$params = $this->getParams()) {
+        if (! $params = $this->getParams()) {
             return;
         }
 
@@ -259,9 +272,8 @@ class Handler
     /**
      * Format the paramenter for query builder.
      *
-     * @param string $key
-     * @param string $value
-     *
+     * @param  string $key
+     * @param  string $value
      * @return array
      */
     protected function formatParam($key, $value)
@@ -289,7 +301,7 @@ class Handler
 
         preg_match($regex, $key, $matches);
 
-        if (!isset($matches[3])) {
+        if (! isset($matches[3])) {
             if (Str::lower(trim($value)) == 'null') {
                 $comparator = 'NULL';
             } else {
@@ -311,9 +323,8 @@ class Handler
     /**
      * Apply the filter to query builder.
      *
-     * @param string $key
-     * @param string $value
-     *
+     * @param  string $key
+     * @param  string $value
      * @return void
      */
     protected function filter($key, $value)
@@ -359,9 +370,8 @@ class Handler
     /**
      * Apply the filter to relationship query builder.
      *
-     * @param string $key
-     * @param string $value
-     *
+     * @param  string $key
+     * @param  string $value
      * @return void
      */
     protected function filterRelation($key, $value)
@@ -372,7 +382,7 @@ class Handler
         $realKey = array_pop($parts);
         $relation = implode('.', $parts);
 
-        if (!in_array($relation, array_keys($this->with))) {
+        if (! in_array($relation, array_keys($this->with))) {
             return;
         }
 
@@ -420,7 +430,6 @@ class Handler
      * Set the query builder.
      *
      * @param  $query
-     *
      * @return void
      */
     public function setQuery($query)
@@ -442,7 +451,6 @@ class Handler
      * Set the Eloquent builder.
      *
      * @param  $builder
-     *
      * @return void
      */
     public function setBuilder($builder)
@@ -463,8 +471,7 @@ class Handler
     /**
      * Get a subset of the items from the input data.
      *
-     * @param array $keys
-     *
+     * @param  array $keys
      * @return \Jenky\LaravelApiHelper\Handler
      */
     public function only($key)
@@ -477,8 +484,7 @@ class Handler
     /**
      * Get all of the input except for a specified array of items.
      *
-     * @param array $keys
-     *
+     * @param  array $keys
      * @return \Jenky\LaravelApiHelper\Handler
      */
     public function except($keys)
@@ -511,21 +517,33 @@ class Handler
     /**
      * Get columns name.
      *
-     * @param array $columns
-     *
+     * @param  array $columns
      * @return array
      */
     protected function getColumns(array $columns)
     {
-        !empty($this->fields) ? $this->fields : $columns;
+        ! empty($this->fields) ? $this->fields : $columns;
+    }
+
+    /**
+     * Set withable relations.
+     *
+     * @param  string|array $relations
+     * @return $this
+     */
+    public function with($relations)
+    {
+        $relations = is_array($relations) ? $relations : func_get_args();
+        $this->withable = $relations;
+
+        return $this;
     }
 
     /**
      * Find a model by its primary key.
      *
-     * @param int   $id
-     * @param array $column
-     *
+     * @param  int $id
+     * @param  array $column
      * @return mixed
      */
     public function find($id, $columns = ['*'])
@@ -538,11 +556,9 @@ class Handler
     /**
      * Find a model by its primary key or throw an exception.
      *
-     * @param int   $id
-     * @param array $column
-     *
+     * @param  int $id
+     * @param  array $column
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
-     *
      * @return mixed
      */
     public function findOrFail($id, $columns = ['*'])
@@ -555,8 +571,7 @@ class Handler
     /**
      * Execute the query and get the first result.
      *
-     * @param array $columns
-     *
+     * @param  array $columns
      * @return mixed
      */
     public function first($columns = ['*'])
@@ -569,10 +584,8 @@ class Handler
     /**
      * Execute the query and get the first result or throw an exception.
      *
-     * @param array $columns
-     *
+     * @param  array $columns
      * @throws \Illuminate\Database\Eloquent\ModelNotFoundException
-     *
      * @return mixed
      */
     public function firstOrFail($columns = ['*'])
@@ -583,9 +596,8 @@ class Handler
     }
 
     /**
-     * @param int   $id
-     * @param array $column
-     *
+     * @param  int $id
+     * @param  array $column
      * @return mixed
      */
     public function item($columns = ['*'])
@@ -596,9 +608,8 @@ class Handler
     }
 
     /**
-     * @param int   $id
-     * @param array $column
-     *
+     * @param  int $id
+     * @param  array $column
      * @return mixed
      */
     public function collection($columns = ['*'])
@@ -622,11 +633,10 @@ class Handler
     /**
      * Paginate the given query.
      *
-     * @param int      $perPage
-     * @param array    $columns
-     * @param string   $pageName
-     * @param int|null $page
-     *
+     * @param  int $perPage
+     * @param  array $columns
+     * @param  string $pageName
+     * @param  int|null $page
      * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
     public function paginate($perPage = null, $columns = ['*'], $pageName = 'page', $page = null)
@@ -640,7 +650,6 @@ class Handler
      * Get the handler.
      *
      * @throws \InvalidArgumentException
-     *
      * @return \Illuminate\Database\Query\Builder | \Illuminate\Database\Eloquent\Builder
      */
     protected function getHandler()
