@@ -471,12 +471,12 @@ class Handler
     /**
      * Get a subset of the items from the input data.
      *
-     * @param  array $keys
+     * @param  array|mixed $keys
      * @return \Jenky\LaravelApiHelper\Handler
      */
-    public function only($key)
+    public function only($keys)
     {
-        $this->params = $this->request->only($key);
+        $this->params = $this->request->only($keys);
 
         return $this;
     }
@@ -484,12 +484,12 @@ class Handler
     /**
      * Get all of the input except for a specified array of items.
      *
-     * @param  array $keys
+     * @param  array|mixed $keys
      * @return \Jenky\LaravelApiHelper\Handler
      */
     public function except($keys)
     {
-        $this->params = $this->request->except($key);
+        $this->params = $this->request->except($keys);
 
         return $this;
     }
