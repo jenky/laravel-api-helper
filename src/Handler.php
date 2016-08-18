@@ -71,13 +71,6 @@ class Handler
     protected $with = [];
 
     /**
-     * The relations is allowed to eager load.
-     *
-     * @var array
-     */
-    protected $withable = ['*'];
-
-    /**
      * Create new instance.
      *
      * @param  \Illuminate\Http\Request $request
@@ -125,6 +118,56 @@ class Handler
     }
 
     /**
+     * Get supported params.
+     *
+     * @param  string $method
+     * @return array
+     */
+    protected function getSupportedParams($method)
+    {
+        $columns = [];
+
+        if ($this->isEloquentBuilder()) {
+            $model = $this->getHandler()->getModel();
+            $columns = in_array(ApiHelper::class, class_uses($model))
+                ? $model->$method()
+                : $model->getFillable();
+        }
+
+        return $columns;
+    }
+
+    /**
+     * Check if the column can be filtered.
+     *
+     * @param  string $column
+     * @return bool
+     */
+    protected function canFilter($column)
+    {
+        if (! $column) {
+            return false;
+        }
+
+        return in_array($column, $this->getSupportedParams('getApiFilterable'));
+    }
+
+    /**
+     * Check if the column can be sorted.
+     *
+     * @param  string $column
+     * @return bool
+     */
+    protected function canSort($column)
+    {
+        if (! $column) {
+            return false;
+        }
+
+        return in_array($column, $this->getSupportedParams('getApiSortble'));
+    }
+
+    /**
      * Parse the data from the request.
      *
      * @return void
@@ -155,8 +198,6 @@ class Handler
                 return $this->$method($params);
             }
         }
-
-        // throw new InvalidArgumentException("Param [$param] not supported.");
     }
 
     /**
@@ -176,6 +217,9 @@ class Handler
             }
 
             $sort = preg_replace('/^-/', '', $sort);
+            if (! $this->canSort($sort)) {
+                return;
+            }
 
             // Only add the sorts that are on the base resource
             if (! Str::contains($sort, '.')) {
@@ -195,7 +239,7 @@ class Handler
     protected function parseFields($params)
     {
         foreach (explode(',', $params) as $field) {
-            //Only add the fields that are on the base resource
+            // Only add the fields that are on the base resource
             if (! Str::contains($field, '.')) {
                 $this->fields[] = trim($field);
             } else {
@@ -224,7 +268,9 @@ class Handler
     protected function parseWith($params)
     {
         $with = explode(',', $params);
-        $with = in_array('*', $this->withable) ? $with : array_only($with, $this->withable);
+        $withable = $this->getSupportedParams('getApiWithable');
+
+        $with = in_array('*', $withable) ? $with : array_only($with, $withable);
 
         foreach ($this->additionalSorts as $sort => $direction) {
             $parts = explode('.', $sort);
@@ -315,7 +361,7 @@ class Handler
             }
         }
 
-        $column = $matches[2];
+        $column = isset($matches[2]) ? $matches[2] : null;
 
         return compact('comparator', 'column', 'matches');
     }
@@ -330,6 +376,10 @@ class Handler
     protected function filter($key, $value)
     {
         extract($this->formatParam($key, $value));
+
+        if (! $this->canFilter($column)) {
+            return;
+        }
 
         if ($comparator == 'IN') {
             $values = explode(',', $value);
@@ -387,6 +437,10 @@ class Handler
         }
 
         extract($this->formatParam($realKey, $value));
+
+        if (! $this->canFilter($column)) {
+            return;
+        }
 
         $this->builder->whereHas($relation, function ($q) use ($column, $comparator, $value) {
             if ($comparator == 'IN') {
@@ -469,32 +523,6 @@ class Handler
     }
 
     /**
-     * Get a subset of the items from the input data.
-     *
-     * @param  array|mixed $keys
-     * @return \Jenky\LaravelApiHelper\Handler
-     */
-    public function only($keys)
-    {
-        $this->params = $this->request->only($keys);
-
-        return $this;
-    }
-
-    /**
-     * Get all of the input except for a specified array of items.
-     *
-     * @param  array|mixed $keys
-     * @return \Jenky\LaravelApiHelper\Handler
-     */
-    public function except($keys)
-    {
-        $this->params = $this->request->except($keys);
-
-        return $this;
-    }
-
-    /**
      * Get the params from the request.
      *
      * @return array
@@ -509,9 +537,7 @@ class Handler
             $this->config('prefix', '').'page',
         ];
 
-        $reserved = array_merge($reserved, $this->config('ignores', []));
-
-        return $this->params ? $this->params : $this->request->except($reserved);
+        return $this->params ?: $this->request->except($reserved);
     }
 
     /**
@@ -522,21 +548,7 @@ class Handler
      */
     protected function getColumns(array $columns)
     {
-        ! empty($this->fields) ? $this->fields : $columns;
-    }
-
-    /**
-     * Set withable relations.
-     *
-     * @param  string|array $relations
-     * @return $this
-     */
-    public function with($relations)
-    {
-        $relations = is_array($relations) ? $relations : func_get_args();
-        $this->withable = $relations;
-
-        return $this;
+        return $this->fields ?: $columns;
     }
 
     /**
@@ -596,7 +608,6 @@ class Handler
     }
 
     /**
-     * @param  int $id
      * @param  array $column
      * @return mixed
      */
@@ -608,7 +619,6 @@ class Handler
     }
 
     /**
-     * @param  int $id
      * @param  array $column
      * @return mixed
      */
