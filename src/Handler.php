@@ -643,7 +643,7 @@ class Handler
     {
         $this->parse();
 
-        return $this->getHandler()->paginate($perPage, $this->getColumns($columns), $this->config('prefix', '').$pageName, $page);
+        return $this->getHandler()->paginate($this->input('limit', $perPage), $this->getColumns($columns), $this->config('prefix', '').$pageName, $page);
     }
 
     /**
