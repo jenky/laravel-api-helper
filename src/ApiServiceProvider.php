@@ -48,12 +48,14 @@ class ApiServiceProvider extends ServiceProvider
      */
     protected function registerApiHelper(Application $app)
     {
-        $app->singleton('apihelper', function ($app) {
+        $app->singleton(Factory::class, function ($app) {
             $request = $app['request'];
             $config = $app['config'];
 
             return new Factory($request, $config);
         });
+
+        $app->alias(Factory::class, 'apihelper');
     }
 
     /**
@@ -63,6 +65,6 @@ class ApiServiceProvider extends ServiceProvider
      */
     public function provides()
     {
-        return ['apihelper'];
+        return [Factory::class, 'apihelper'];
     }
 }
